@@ -1,6 +1,4 @@
 import * as core from "@actions/core";
-import * as exec from "@actions/exec";
-
 import { cleanBin, cleanGit, cleanRegistry, cleanTargetDir } from "./cleanup";
 import { CacheConfig, isCacheUpToDate } from "./config";
 import { getCacheProvider, reportError } from "./utils";
@@ -30,11 +28,6 @@ async function run() {
     const config = CacheConfig.fromState();
     config.printInfo(cacheProvider);
     core.info("");
-
-    // TODO: remove this once https://github.com/actions/toolkit/pull/553 lands
-    if (process.env["RUNNER_OS"] == "macOS") {
-      await macOsWorkaround();
-    }
 
     const workspaceCrates = core.getInput("cache-workspace-crates").toLowerCase() || "false";
     const allPackages = [];
@@ -89,11 +82,3 @@ async function run() {
 }
 
 run();
-
-async function macOsWorkaround() {
-  try {
-    // Workaround for https://github.com/actions/cache/issues/403
-    // Also see https://github.com/rust-lang/cargo/issues/8603
-    await exec.exec("sudo", ["/usr/sbin/purge"], { silent: true });
-  } catch {}
-}
